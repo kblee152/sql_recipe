@@ -98,3 +98,27 @@ FROM
     advertising_stats
 ORDER BY
     dt, ad_id;
+
+-- 6-9 일차원 데이터의 절대값과 제곱 평균 제곱근(RMS)을 계산하는 쿼리(abs/power/sqrt)
+SELECT
+    abs(x1 - x2) AS abs,
+    sqrt(power(x1 - x2, 2)) AS rms
+FROM location_1d;
+
+-- 6-10 xy 평면 위에 있는 두 점의 유클리드 거리 계산하기
+SELECT
+    sqrt(power(x1 - x2, 2) + power(y1 - y2, 2)) AS dist
+    -- PostgreSQL은 point 자료형과 거리 연산자 <-> 사용
+    -- point(x1, y1) <-> point(x2, y2) AS dist
+FROM location_2d;
+
+-- 6-11 미래 또는 과거의 날짜/시간을 계산하는 쿼리
+SELECT
+    user_id,
+    register_stamp::timestamp AS register_stamp,
+    register_stamp::timestamp + '1 hour'::interval AS after_1_hour
+
+    -- mysql
+    DATEADD(register_stamp, interval 1 hour)
+FROM
+    mst_users_with_dates

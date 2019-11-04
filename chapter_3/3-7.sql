@@ -37,3 +37,57 @@ FROM
     review;
 
 
+-- 7-4 그룹 내부의 순서 정의(ORDER BY)
+SELECT
+    product_id,
+    score,
+
+    -- 점수 순서로 유일한 순위를 붙임
+    ROW_NUMBER() OVER(ORDER BY score DESC) AS row,
+
+    -- 같은 순위를 허용해서 순위를 붙임
+    RANK() OVER(ORDER BY score DESC) AS rank,
+
+    -- 같은 순위가 있을 때 같은 순위 다음에 있는 순위를 건너 뛰고 순위를 붙임
+    DENSE_RANK() OVER(ORDER BY score DESC) AS dense_rank,
+
+    
+    -- 현재 행보다 앞에 있는 행의 값 추출
+    LAG(product_id) OVER(ORDER BY score DESC) AS lag1,
+    LAG(Product_id, 2) OVER(ORDER BY score DESC) AS lag2,
+
+    -- 현재 행보다 뒤에 있는 행의 값 추출
+    LEAD(product_id) OVER(ORDER BY score DESC) AS lead1,
+    LEAD(product_id, 2) OVER(ORDER BY score DESC) AS lead2
+
+FROM popular_products
+ORDER BY row;
+
+-- 7-5 ORDER BY 구문과 집약 함수를 조합해서 계산
+
+-- 7-6 윈도 프레임 지정별 상품 ID를 집약하는 쿼리
+
+-- 7-7 PARTITION BY와 ORDER BY 조합
+SELECT
+    category,
+    product_id,
+    score,
+
+    -- 카테고리별로 점수 순서로 정렬하고 유일한 순위를 붙임
+    ROW_NUMBER()
+        OVER(PARTITION BY category ORDER BY score DESC)
+    AS row,
+
+    -- 카테고리별로 같은 순위를 허가하고 순위를 붙임
+    RANK()
+        OVER(PARTITION BY category ORDER BY score DESC)
+    AS rank,
+
+    -- 카테고리별로 같은 순위가 있을 때
+    -- 같은 순위 다음에 있는 순위를 건너 뛰고 순위를 붙임
+    DENSE_RANK()
+        OVER(PARTITION BY category ORDER BY score DESC)
+    AS dense_rank
+FROM popular_products
+ORDER BY category, row;
+

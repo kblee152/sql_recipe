@@ -91,3 +91,33 @@ SELECT
 FROM popular_products
 ORDER BY category, row;
 
+-- 7-8 각 카테고리의 상위 n개 추출하기
+SELECT *
+FROM
+    -- 서브 쿼리 내부에서 순위 계산하기
+    ( SELECT
+        category,
+        product_id,
+        score,
+        -- 카테고리별로 점수 순서로 유일한 순위를 붙임
+        ROW_NUMBER()
+            OVER(PARTITION BY category ORDER BY score DESC)
+        AS rank
+      FROM popular_products
+    ) AS popular_products_with_rank
+-- 외부 쿼리에서 순위 활용해 압축하기
+WHERE rank <= 2
+ORDER BY category, rank;
+
+-- 7-9 각 카테고리의 최상위 상품 추출
+SELECT DISTINCT
+    category,
+    -- 카테고리별로 최상품 상품 ID 추출
+    FIRST_VALUE(product_id)
+        OVER(PARTITION BY category ORDER BY score DESC
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+    AS product_id
+FROM popular_products;
+
+
+

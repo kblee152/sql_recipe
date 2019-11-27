@@ -120,4 +120,61 @@ SELECT DISTINCT
 FROM popular_products;
 
 
+-- 7-10 행으로 지정된 지표 값을 열로 변환하는 쿼리
+SELECT
+    dt,
+    MAX(CASE WHEN indicator = 'impressions' THEN val END) AS impressions
+    MAX(CASE WHEN indicator = 'ssessions' THEN val END) AS sessions 
+    MAX(CASe WHEN indicator = 'users' THEN val END) AS users
+FROM daily_kpi
+GROUP BY dt 
+ORDER BY dt;
 
+
+-- 7-11 행을 집약해서 쉼표로 구분된 문자열로 변환하기
+SELECT
+    purchase_id,
+
+    -- MySQL
+    GROUP_CONCAT(product_id) AS product_ids
+
+    -- 상품 ID를 배열에 집약하고 쉼표로 구분된 문자열로 변환하기
+    -- PostgreSQL, BigQuery
+    string_agg(product_id, ',') AS product_ids
+
+    -- Redshift의 경우는 listagg
+    listagg(product_id, ',') AS product_ids
+
+    -- Hive, SparkSQL의 경우 collect_list와 concat_ws
+    concat_ws(',', collect_list(product_id)) AS product_ids
+
+    SUM(price) AS amount
+FROM purchase_detail_log
+GROUP BY purchase_id
+ORDER BY purchase_id
+
+-- 7-12 일련 번호를 가진 피벗 테이블을 사용해 행으로 변환하는 쿼리
+SELECT 
+    q.year,
+    CASE
+        WHEN p.idx = 1 THEN 'q1'
+        WHEN p.idx = 2 THEN 'q2'
+        WHEN p.idx = 3 THEN 'q3'
+        WHEN p.idx = 4 THEN 'q4'
+    END AS quarter,
+
+    CASE
+        WHEN p.idx = 1 THEN q.q1
+        WHEN p.idx = 2 THEN q.q2
+        WHEN p.idx = 3 THEN q.q3
+        WHEN p.idx = 4 THEN q.q4
+    END AS sales 
+FROM
+    quarterly_sales AS q 
+    CROSS JOIN
+    (         SELECT 1 AS idx
+    UNION ALL SELECT 2 AS idx
+    UNION ALL SELECT 3 AS idx
+    UNION ALL SELECT 4 AS idx
+    ) AS p 
+;
